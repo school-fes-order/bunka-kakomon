@@ -7,84 +7,69 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root { --main: #2c3e50; --accent: #3498db; --save: #27ae60; --all: #e74c3c; }
-        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 15px; color: #333; line-height: 1.6; }
+        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 15px; padding-bottom: 60px; }
         .container { max-width: 900px; margin: auto; }
-        h1 { text-align: center; color: var(--main); margin-bottom: 20px; font-size: 1.5rem; }
+        
+        /* タイトルエリア */
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { color: var(--main); margin-bottom: 5px; font-size: 1.4rem; }
+        .version-badge { background: #ddd; color: #666; font-size: 10px; padding: 2px 8px; border-radius: 10px; vertical-align: middle; }
 
-        /* 一括ダウンロード */
-        .all-dl-box {
-            background: #fff; padding: 20px; border-radius: 15px;
-            text-align: center; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-        }
-        .btn-all {
-            background: var(--all); color: white; border: none; padding: 15px 20px;
-            border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 16px; width: 100%; max-width: 350px;
-            transition: 0.2s;
-        }
-        .btn-all:active { transform: scale(0.98); }
+        .all-dl-box { background: #fff; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .btn-all { background: var(--all); color: white; border: none; padding: 15px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; width: 100%; max-width: 350px; }
+        .update-date { font-size: 11px; color: #999; margin-top: 8px; }
 
-        /* 教科カード */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
         .card { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 6px solid var(--accent); }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .card h2 { margin: 0; font-size: 1.2rem; }
+        .card h2 { margin: 0; font-size: 1.1rem; }
+        .sub-dl-btn { background: var(--save); color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 11px; cursor: pointer; }
 
-        /* 保存ボタン */
-        .sub-dl-btn { background: var(--save); color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 12px; cursor: pointer; font-weight: bold; }
+        .btn-group { display: flex; flex-wrap: wrap; gap: 6px; }
+        .page-btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; flex: 1 1 55px; font-weight: bold; }
 
-        .btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
-        .page-btn {
-            background: var(--accent); color: white; border: none; padding: 12px;
-            border-radius: 8px; cursor: pointer; flex: 1 1 60px; font-weight: bold; font-size: 14px;
-        }
+        /* 右下の固定バージョン表示 */
+        .footer-version { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #bbb; z-index: 100; }
 
-        /* 全画面表示ビューワー */
-        #viewer {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;
-        }
-        #viewer img { max-width: 95%; max-height: 80%; object-fit: contain; cursor: pointer; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .close-btn { position: absolute; top: 20px; right: 20px; color: white; font-size: 18px; cursor: pointer; background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 5px; }
-        .info-txt { color: white; margin-top: 15px; font-weight: bold; text-align: center; }
-
-        @media (max-width: 600px) {
-            h1 { font-size: 1.2rem; }
-            .page-btn { padding: 15px; } /* スマホで押しやすく */
-        }
+        #viewer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+        #viewer img { max-width: 95%; max-height: 85%; object-fit: contain; }
+        .close-btn { position: absolute; top: 20px; right: 20px; color: white; font-size: 16px; cursor: pointer; background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>文化学園 過去問アーカイブ</h1>
+    <div class="header">
+        <h1>文化学園 過去問アーカイブ <span class="version-badge">v1.0.2</span></h1>
+    </div>
 
     <div class="all-dl-box">
-        <button class="btn-all" id="zipBtn" onclick="downloadZip('all')">全教科を一括ダウンロード (.zip)</button>
+        <button class="btn-all" onclick="downloadZip('all')">全教科を一括ダウンロード</button>
+        <div class="update-date">最終更新: 2026/01/19</div>
     </div>
 
     <div class="grid" id="mainGrid"></div>
 </div>
 
+<div class="footer-version">bunka-kakomon-viewer v1.0.2</div>
+
 <div id="viewer" onclick="nextPage()">
-    <span class="close-btn" onclick="closeViewer(event)">× 閉じる</span>
+    <span class="close-btn" onclick="closeViewer(event)">閉じる</span>
     <img id="viewerImg" src="">
-    <div class="info-txt" id="pageInfo"></div>
-    <div style="color: #bbb; font-size: 12px; margin-top: 5px;">画面タップで次へ</div>
+    <div id="pageInfo" style="color: white; margin-top: 15px; font-weight: bold;"></div>
 </div>
 
 <script>
-    // フォルダ階層 assets/教科名/教科名-番号.jpg に完全対応
     const subjects = [
-        { id: 'rika', name: '理科', count: 6 },
-        { id: 'kokugo', name: '国語', count: 5 },
-        { id: 'syakai', name: '社会', count: 5 },
-        { id: 'eigo', name: '英語', count: 3 }
+        { id: 'rika', name: '理科', count: 6, path: 'assets/rika/' },
+        { id: 'kokugo', name: '国語', count: 5, path: 'assets/kokugo/' },
+        { id: 'syakai', name: '社会', count: 5, path: 'assets/syakai/' },
+        { id: 'eigo', name: '英語', count: 3, path: 'assets/eigo/' }
     ];
 
     let curSub = ''; let curPg = 1; let maxPg = 0;
     const grid = document.getElementById('mainGrid');
 
-    // ボタン生成
     subjects.forEach(sub => {
         const card = document.createElement('div');
         card.className = 'card';
@@ -92,17 +77,10 @@
         for (let i = 1; i <= sub.count; i++) {
             btns += `<button class="page-btn" onclick="openViewer('${sub.id}', ${i})">P.${i}</button>`;
         }
-        card.innerHTML = `
-            <div class="card-header">
-                <h2>${sub.name}</h2>
-                <button class="sub-dl-btn" onclick="downloadZip('${sub.id}')">一括保存</button>
-            </div>
-            <div class="btn-group">${btns}</div>
-        `;
+        card.innerHTML = `<div class="card-header"><h2>${sub.name}</h2><button class="sub-dl-btn" onclick="downloadZip('${sub.id}')">保存</button></div><div class="btn-group">${btns}</div>`;
         grid.appendChild(card);
     });
 
-    // 表示機能
     function openViewer(id, pg) {
         const sub = subjects.find(s => s.id === id);
         curSub = id; curPg = pg; maxPg = sub.count;
@@ -111,53 +89,36 @@
     }
 
     function updateView() {
-        // パス修正：assets/教科名/教科名-番号.jpg
-        const path = `assets/${curSub}/${curSub}-${curPg}.jpg`;
-        document.getElementById('viewerImg').src = path;
-        const subName = subjects.find(s => s.id === curSub).name;
-        document.getElementById('pageInfo').innerText = `${subName} : ${curPg} / ${maxPg} ページ`;
+        const sub = subjects.find(s => s.id === curSub);
+        document.getElementById('viewerImg').src = `${sub.path}${sub.id}-${curPg}.jpg`;
+        document.getElementById('pageInfo').innerText = `${sub.name} : ${curPg} / ${maxPg}`;
     }
 
-    function nextPage() {
-        if (curPg < maxPg) { curPg++; updateView(); } 
-        else { closeViewer(); }
-    }
+    function nextPage() { if (curPg < maxPg) { curPg++; updateView(); } else { closeViewer(); } }
+    function closeViewer(e) { if(e) e.stopPropagation(); document.getElementById('viewer').style.display = 'none'; }
 
-    function closeViewer(e) {
-        if(e) e.stopPropagation();
-        document.getElementById('viewer').style.display = 'none';
-    }
-
-    // ダウンロード機能
     async function downloadZip(targetId) {
         const zip = new JSZip();
         const targetSubs = targetId === 'all' ? subjects : subjects.filter(s => s.id === targetId);
         const btn = event.target;
-        const originalText = btn.innerText;
         btn.innerText = "作成中...";
-
         for (const sub of targetSubs) {
-            const folder = zip.folder(sub.name);
             for (let i = 1; i <= sub.count; i++) {
-                const imgPath = `assets/${sub.id}/${sub.id}-${i}.jpg`;
                 try {
-                    const res = await fetch(imgPath);
-                    if (!res.ok) throw new Error();
+                    const res = await fetch(`${sub.path}${sub.id}-${i}.jpg`);
                     const blob = await res.blob();
-                    folder.file(`${sub.id}-${i}.jpg`, blob);
-                } catch (e) { console.error("Missing:", imgPath); }
+                    zip.file(`${sub.id}-${i}.jpg`, blob);
+                } catch (e) {}
             }
         }
-
         zip.generateAsync({type:"blob"}).then(blob => {
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = targetId === 'all' ? "過去問_全教科.zip" : `${targetId}_過去問.zip`;
+            a.download = `${targetId}.zip`;
             a.click();
-            btn.innerText = originalText;
+            btn.innerText = targetId === 'all' ? "全教科を一括ダウンロード" : "保存";
         });
     }
 </script>
-
 </body>
 </html>
